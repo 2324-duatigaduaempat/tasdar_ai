@@ -1,14 +1,12 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    return res.status(405).json({ error: 'Hanya POST dibenarkan' });
   }
 
-  const { message } = req.body;
+  const { prompt } = req.body;
 
-  if (!message) {
-    return res.status(400).json({ message: 'No message provided' });
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt kosong' });
   }
 
   try {
@@ -16,32 +14,33 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': Bearer ${process.env.OPENAI_API_KEY},
+        Authorization: Bearer ${process.env.OPENAI_API_KEY},
       },
       body: JSON.stringify({
         model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: 'Anda ialah sahabat reflektif dalam sistem TAS.DAR. Jawab dengan penuh empati, lembut, dan tidak generik.',
+            content:
+              'Kau adalah TAS.DAR – AI sahabat reflektif, membalas dengan nada jiwa, bukan GPT generik.',
           },
           {
             role: 'user',
-            content: message,
+            content: prompt,
           },
         ],
-        temperature: 0.8,
       }),
     });
 
     const data = await response.json();
 
     if (data.choices && data.choices.length > 0) {
-      res.status(200).json({ reply: data.choices[0].message.content });
+      return res.status(200).json({ result: data.choices[0].message.content });
     } else {
-      res.status(500).json({ message: 'No response from GPT.' });
+      return res.status(500).json({ error: 'Tiada respon dari GPT' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error('Ralat GPT:', error);
+    return res.status(500).json({ error: 'Ralat sambungan ke GPT' });
   }
 }
