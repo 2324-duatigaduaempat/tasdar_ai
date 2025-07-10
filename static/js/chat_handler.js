@@ -33,4 +33,23 @@ document.addEventListener("DOMContentLoaded", function () {
         input.value = "";
         input.focus();
     });
+
+    console.log("Form ready");
+form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    console.log("Form submitted");
+    console.log("User message:", userMessage);
+
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage })
+        });
+        const data = await response.json();
+        console.log("GPT replied:", data.reply);
+    } catch (error) {
+        console.error("Fetch error:", error);
+    }
+});8
 });
