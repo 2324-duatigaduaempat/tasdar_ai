@@ -1,12 +1,17 @@
-
+<!-- templates/chat.html -->
 <!DOCTYPE html>
 <html>
-<head><title>Chat</title></head>
+<head>
+  <title>TAS.DAR GPT Chat</title>
+</head>
 <body>
-  <h2>GPT Live Chat</h2>
-  <input type="text" id="userInput" placeholder="Type here...">
-  <button onclick="sendMessage()">Send</button>
+  <h1>TAS.DAR GPT Chat</h1>
+  <form>
+    <textarea rows="4" cols="50" placeholder="Tulis mesej di sini..."></textarea><br>
+    <button type="submit">Hantar</button>
+  </form>
   <div id="chatOutput"></div>
-  <script src="chat.js"></script>
+
+  <script src="/static/js/chat_handler.js"></script>
 </body>
 </html>
