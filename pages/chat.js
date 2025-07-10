@@ -1,27 +1,44 @@
-export default async function handler(req, res) {
-  if (!req.body || !req.body.message) {
-    return res.status(400).json({ error: "Message is missing." });
-  }
 
-  const { message } = req.body;
+import { useState } from 'react';
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+export default function Chat() {
+  const [message, setMessage] = useState('');
+  const [response, setResponse] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/chat', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{ role: "user", content: message }],
-      }),
+      body: JSON.stringify({ message }),
     });
 
-    const data = await response.json();
-    res.status(200).json({ reply: data.choices[0].message.content });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+    const data = await res.json();
+    setResponse(data.reply);
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>TAS.DAR GPT Chat</h1>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          cols={50}
+          placeholder="Tulis mesej anda di sini..."
+        />
+        <br />
+        <button type="submit">Hantar</button>
+      </form>
+      {response && (
+        <div>
+          <h3>Respon GPT:</h3>
+          <p>{response}</p>
+        </div>
+      )}
+    </div>
+  );
 }
