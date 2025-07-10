@@ -1,9 +1,8 @@
-
 export default function Chat() {
   return (
     <main>
-      <h1>GPT Live Chat TAS.DAR</h1>
-      <p>Fungsi akan disambung ke backend Render/MongoDB.</p>
+      <h1>Chatboard TAS.DAR</h1>
+      <p>AI akan menjawab di sini (sambungan GPT live diperlukan).</p>
     </main>
   );
 }
