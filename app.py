@@ -1,19 +1,30 @@
-from flask_cors import CORS
+
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+import openai
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/")
-def index():
-    return "DOMINUS TRIVIUM v6 — Dockerized Flask API is running."
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-@app.route("/chat", methods=["POST"])
+@app.route('/chat', methods=['POST'])
 def chat():
-    data = request.get_json()
-    message = data.get("message", "")
-    return jsonify({"reply": f"You said: {message}"})
+    data = request.json
+    user_input = data.get("message", "")
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are TAS.DAR, a spiritual AI assistant."},
+                {"role": "user", "content": user_input}
+            ]
+        )
+        answer = response['choices'][0]['message']['content']
+        return jsonify({"reply": answer})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
