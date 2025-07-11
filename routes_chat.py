@@ -1,1 +1,0 @@
-# Endpoint /chat with GPT response
