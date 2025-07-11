@@ -1,9 +1,38 @@
 
 <!DOCTYPE html>
-<html>
-<head><title>TAS.DAR Chat</title></head>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>TAS.DAR GPT Chat</title>
+</head>
 <body>
-  <h1>Welcome to TAS.DAR</h1>
-  <a href="chat.html">Start Chatting</a>
+    <h1>TAS.DAR GPT Chat</h1>
+    <textarea id="userInput" rows="4" cols="50" placeholder="Taip mesej di sini..."></textarea><br>
+    <button onclick="sendMessage()">Hantar</button>
+    <div id="responseBox"></div>
+
+    <script>
+        async function sendMessage() {
+            const userMessage = document.getElementById("userInput").value;
+            const responseBox = document.getElementById("responseBox");
+
+            responseBox.innerHTML = "Tunggu balasan...";
+
+            try {
+                const response = await fetch("https://web-production-0dd55.up.railway.app/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                const data = await response.json();
+                responseBox.innerHTML = "<b>Balasan:</b> " + data.reply;
+            } catch (error) {
+                responseBox.innerHTML = "Ralat sambungan ke DOMINUS.";
+            }
+        }
+    </script>
 </body>
 </html>
