@@ -1,52 +1,49 @@
+import os
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from pymongo import MongoClient
 import openai
-import os
 from dotenv import load_dotenv
+import datetime
 
-load_dotenv()  # Load dari .env
+load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
-# Setup MongoDB
-mongo_uri = os.getenv("MONGODB_URI")
-mongo_client = MongoClient(mongo_uri)
-db = mongo_client["tasdar_db"]
-messages_collection = db["folder_jiwa"]
-
-# Setup OpenAI
+# Load keys from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
+mongo_uri = os.getenv("MONGODB_URI")
+
+client = MongoClient(mongo_uri)
+db = client["tasdar_db"]
+collection = db["messages"]
+
+@app.route("/", methods=["GET"])
+def root():
+    return jsonify({"message": "TAS.DAR is alive (Dual Jantung Version with GPT + MongoDB)"}), 200
 
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
-        data = request.get_json()
-        message = data.get("message", "")
+        data = request.json
+        user_message = data.get("message", "")
 
-        if not message:
-            return jsonify({"error": "No message provided"}), 400
-
-        # Sambung MongoDB
-        client = MongoClient(mongo_uri)
-        db = client["tasdar_db"]
-        collection = db["chat_history"]
-
-        # Simpan mesej pengguna
-        collection.insert_one({"role": "user", "message": message})
-
-        # Panggil GPT
-        openai.api_key = openai_api_key
+        # GPT response
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message}]
+            messages=[{"role": "user", "content": user_message}]
         )
+        reply = response.choices[0].message.content
 
-        gpt_reply = response.choices[0].message.content
+        # Save to MongoDB
+        collection.insert_one({
+            "message": user_message,
+            "reply": reply,
+            "timestamp": datetime.datetime.utcnow()
+        })
 
-        # Simpan balasan GPT
-        collection.insert_one({"role": "assistant", "message": gpt_reply})
-
-        return jsonify({"reply": gpt_reply})
+        return jsonify({"reply": reply})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
