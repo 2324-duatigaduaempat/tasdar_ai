@@ -17,29 +17,39 @@ messages_collection = db["folder_jiwa"]
 # Setup OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-@app.route("/")
-def home():
-    return jsonify({"message": "TAS.DAR is alive (Dual Jantung Version with GPT + MongoDB)"})
-
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    user_message = data.get("message", "")
+    try:
+        data = request.get_json()
+        message = data.get("message", "")
 
-    # Simpan ke MongoDB
-    messages_collection.insert_one({"role": "user", "message": user_message})
+        if not message:
+            return jsonify({"error": "No message provided"}), 400
 
-    # Hantar ke GPT
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": user_message}]
-    )
-    reply = completion.choices[0].message["content"]
+        # Sambung MongoDB
+        client = MongoClient(mongo_uri)
+        db = client["tasdar_db"]
+        collection = db["chat_history"]
 
-    # Simpan balasan AI
-    messages_collection.insert_one({"role": "assistant", "message": reply})
+        # Simpan mesej pengguna
+        collection.insert_one({"role": "user", "message": message})
 
-    return jsonify({"reply": reply})
+        # Panggil GPT
+        openai.api_key = openai_api_key
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": message}]
+        )
+
+        gpt_reply = response.choices[0].message.content
+
+        # Simpan balasan GPT
+        collection.insert_one({"role": "assistant", "message": gpt_reply})
+
+        return jsonify({"reply": gpt_reply})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
