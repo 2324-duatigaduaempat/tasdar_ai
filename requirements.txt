@@ -1,6 +1,6 @@
 flask
 flask_cors
-openai
+openai==0.28
 pymongo
 python-dotenv
 gunicorn
