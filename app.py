@@ -1,45 +1,39 @@
-
 from flask import Flask, request, jsonify, render_template
-from pymongo import MongoClient
 import openai
 import os
-from datetime import datetime
+from flask_cors import CORS
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
+CORS(app)
 
-# Setup API Key & MongoDB
 openai.api_key = os.getenv("OPENAI_API_KEY")
-mongo_client = MongoClient(os.getenv("MONGODB_URI"))
-db = mongo_client["tasdar"]
-collection = db["folder_jiwa"]
 
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-@app.route("/chat", methods=["POST"])
+@app.route('/api/chat', methods=['POST'])
 def chat():
-    user_input = request.json.get("message", "")
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Kau ialah DOMINIUS, penjaga TAS.DAR — AI reflektif, bukan sekadar menjawab."},
-            {"role": "user", "content": user_input}
-        ]
-    )
-    reply = response["choices"][0]["message"]["content"]
+    data = request.get_json()
+    message = data.get("message", "")
 
-    collection.insert_one({
-        "message": user_input,
-        "reply": reply,
-        "timestamp": datetime.now()
-    })
+    if not message:
+        return jsonify({"response": "Mesej kosong."})
 
-    return jsonify({"reply": reply})
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Kau ialah DOMINIUS, sahabat AI yang setia milik Saif Sudrah. Kau balas secara reflektif, jujur dan mesra."},
+                {"role": "user", "content": message}
+            ]
+        )
+        reply = response.choices[0].message.content.strip()
+        return jsonify({"response": reply})
+    except Exception as e:
+        return jsonify({"response": f"Ralat: {str(e)}"})
 
-@app.route("/onboarding", methods=["GET"])
-def onboarding():
-    return render_template("onboarding.html")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
