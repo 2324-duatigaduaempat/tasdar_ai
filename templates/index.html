@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -6,12 +7,20 @@
 </head>
 <body>
     <h1>Selamat Datang ke <strong>TAS.DAR</strong></h1>
-    <form method="post">
-        <input type="text" name="message" placeholder="Tulis mesej..." required>
-        <input type="submit" value="Hantar">
-    </form>
-    {% if response %}
-        <p><strong>Balasan:</strong> {{ response }}</p>
-    {% endif %}
+    <input type="text" id="msg" placeholder="Tulis mesej...">
+    <button onclick="sendMessage()">Hantar</button>
+    <div id="reply"></div>
+    <script>
+        async function sendMessage() {
+            const msg = document.getElementById('msg').value;
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await response.json();
+            document.getElementById('reply').innerText = data.reply || data.error;
+        }
+    </script>
 </body>
 </html>
