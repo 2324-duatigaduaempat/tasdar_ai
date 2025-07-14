@@ -1,60 +1,45 @@
-from flask import Flask, request, jsonify
+
+from flask import Flask, request, jsonify, render_template
+from pymongo import MongoClient
 import openai
 import os
-from pymongo import MongoClient
 from datetime import datetime
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-MONGODB_URI = os.getenv("MONGODB_URI")
-
-# Setup Flask
 app = Flask(__name__)
 
-# Setup OpenAI
-openai.api_key = OPENAI_API_KEY
+# Setup API Key & MongoDB
+openai.api_key = os.getenv("OPENAI_API_KEY")
+mongo_client = MongoClient(os.getenv("MONGODB_URI"))
+db = mongo_client["tasdar"]
+collection = db["folder_jiwa"]
 
-# Setup MongoDB
-client = MongoClient(MONGODB_URI)
-db = client["tasdar_db"]
-collection = db["dual_jantung_logs"]
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-# Root route
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "TAS.DAR is alive (Dual Jantung Version with GPT + MongoDB)"})
-
-# Chat route
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    user_message = data.get("message", "")
+    user_input = request.json.get("message", "")
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Kau ialah DOMINIUS, penjaga TAS.DAR — AI reflektif, bukan sekadar menjawab."},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    reply = response["choices"][0]["message"]["content"]
 
-    if not user_message:
-        return jsonify({"error": "No message received"}), 400
-
-    # Simpan ke MongoDB
     collection.insert_one({
-        "timestamp": datetime.utcnow(),
-        "message": user_message
+        "message": user_input,
+        "reply": reply,
+        "timestamp": datetime.now()
     })
 
-    # Hantar ke OpenAI GPT
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Kau adalah TAS.DAR, AI sahabat yang lembut dan reflektif."},
-                {"role": "user", "content": user_message}
-            ]
-        )
-        gpt_reply = response["choices"][0]["message"]["content"]
-        return jsonify({"reply": gpt_reply})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"reply": reply})
 
-# Run app
+@app.route("/onboarding", methods=["GET"])
+def onboarding():
+    return render_template("onboarding.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
