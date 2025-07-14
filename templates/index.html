@@ -1,30 +1,40 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="ms">
 <head>
+    <meta charset="UTF-8">
     <title>TAS.DAR</title>
-    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <h1>Selamat Datang ke TAS.DAR</h1>
-    <div id="chat-container">
-        <input id="user-input" type="text" placeholder="Tulis mesej...">
-        <button onclick="sendMessage()">Hantar</button>
-        <div id="chat-box"></div>
-    </div>
+    <h1>Selamat Datang ke <strong>TAS.DAR</strong></h1>
+
+    <form id="chat-form">
+        <input type="text" name="message" placeholder="Tulis mesej..." required>
+        <button type="submit">Hantar</button>
+    </form>
+
+    <div id="chat-box"></div>
+
     <script>
-        async function sendMessage() {
-            const input = document.getElementById("user-input");
-            const response = await fetch("/chat", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({message: input.value})
-            });
-            const data = await response.json();
-            document.getElementById("chat-box").innerHTML += "<p><b>Anda:</b> " + input.value + "</p>";
-            document.getElementById("chat-box").innerHTML += "<p><b>DOMINIUS:</b> " + data.reply + "</p>";
+        document.getElementById("chat-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const input = document.querySelector("input[name='message']");
+            const message = input.value;
             input.value = "";
-        }
+
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += <p><strong>Anda:</strong> ${message}</p>;
+            chatBox.innerHTML += <p><strong>DOMINIUS:</strong> ${data.response}</p>;
+        });
     </script>
 </body>
 </html>
