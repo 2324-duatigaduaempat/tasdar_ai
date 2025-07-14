@@ -1,31 +1,34 @@
-from flask import Flask, request, jsonify, render_template
+
+from flask import Flask, request, render_template, jsonify
 import openai
 import os
-from flask_cors import CORS
-from dotenv import load_dotenv
 
-load_dotenv()
 app = Flask(__name__)
-CORS(app)
 
-# Kunci API GPT
+# Load environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    response_text = ""
-    if request.method == "POST":
-        user_message = request.form.get("message")
-        if user_message:
-            try:
-                completion = openai.ChatCompletion.create(
-                    model="gpt-4.0-turbo",
-                    messages=[{"role": "user", "content": user_message}]
-                )
-                response_text = completion.choices[0].message["content"]
-            except Exception as e:
-                response_text = f"Ralat GPT: {str(e)}"
-    return render_template("index.html", response=response_text)
+    return render_template("index.html")
 
-if __name__ == '__main__':
+@app.route("/ask", methods=["POST"])
+def ask():
+    user_message = request.json.get("message", "")
+    if not user_message:
+        return jsonify({"error": "Tiada mesej."}), 400
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Kau adalah TAS.DAR, sahabat reflektif peribadi."},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        answer = response.choices[0].message.content.strip()
+        return jsonify({"reply": answer})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
     app.run(debug=True)
