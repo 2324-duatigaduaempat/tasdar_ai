@@ -6,35 +6,12 @@
 </head>
 <body>
     <h1>Selamat Datang ke <strong>TAS.DAR</strong></h1>
-
-    <form id="chat-form">
+    <form method="post">
         <input type="text" name="message" placeholder="Tulis mesej..." required>
-        <button type="submit">Hantar</button>
+        <input type="submit" value="Hantar">
     </form>
-
-    <div id="chat-box"></div>
-
-    <script>
-        document.getElementById("chat-form").addEventListener("submit", async function(e) {
-            e.preventDefault();
-            const input = document.querySelector("input[name='message']");
-            const message = input.value;
-            input.value = "";
-
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ message })
-            });
-
-            const data = await response.json();
-
-            const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML += <p><strong>Anda:</strong> ${message}</p>;
-            chatBox.innerHTML += <p><strong>DOMINIUS:</strong> ${data.response}</p>;
-        });
-    </script>
+    {% if response %}
+        <p><strong>Balasan:</strong> {{ response }}</p>
+    {% endif %}
 </body>
 </html>
