@@ -1,9 +1,30 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TAS.DAR DUAL JANTUNG</title>
+    <title>TAS.DAR</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <h1>Welcome to TAS.DAR (Dual Jantung Version)</h1>
+    <h1>Selamat Datang ke TAS.DAR</h1>
+    <div id="chat-container">
+        <input id="user-input" type="text" placeholder="Tulis mesej...">
+        <button onclick="sendMessage()">Hantar</button>
+        <div id="chat-box"></div>
+    </div>
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: input.value})
+            });
+            const data = await response.json();
+            document.getElementById("chat-box").innerHTML += "<p><b>Anda:</b> " + input.value + "</p>";
+            document.getElementById("chat-box").innerHTML += "<p><b>DOMINIUS:</b> " + data.reply + "</p>";
+            input.value = "";
+        }
+    </script>
 </body>
 </html>
