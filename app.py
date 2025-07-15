@@ -18,13 +18,11 @@ def ask():
     if not user_message:
         return jsonify({"error": "Tiada mesej."}), 400
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Kau adalah TAS.DAR, sahabat reflektif peribadi."},
-                {"role": "user", "content": user_message}
-            ]
-        )
+       client = openai.OpenAI(api_key=OPENAI_API_KEY)
+       client.chat.completions.create(
+       model="gpt-3.5-turbo",
+       messages=[{"role": "user", "content": "Hi"}]
+       )
         answer = response.choices[0].message.content.strip()
         return jsonify({"reply": answer})
     except Exception as e:
