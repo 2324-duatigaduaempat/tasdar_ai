@@ -1,25 +1,24 @@
-
 <!DOCTYPE html>
-<html lang="ms">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>TAS.DAR</title>
+    <title>TAS.DAR AI</title>
 </head>
 <body>
-    <h1>Selamat Datang ke <strong>TAS.DAR</strong></h1>
-    <input type="text" id="msg" placeholder="Tulis mesej...">
-    <button onclick="sendMessage()">Hantar</button>
-    <div id="reply"></div>
+    <h1>Selamat Datang ke TAS.DAR</h1>
+    <input id="message" placeholder="Tulis mesej..." />
+    <button onclick="send()">Hantar</button>
+    <p id="response"></p>
+
     <script>
-        async function sendMessage() {
-            const msg = document.getElementById('msg').value;
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg })
+        async function send() {
+            const message = document.getElementById("message").value;
+            const res = await fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
             });
-            const data = await response.json();
-            document.getElementById('reply').innerText = data.reply || data.error;
+            const data = await res.json();
+            document.getElementById("response").innerText = data.reply || data.error;
         }
     </script>
 </body>
