@@ -1,29 +1,33 @@
-
 from flask import Flask, request, render_template, jsonify
 import openai
 import os
 
 app = Flask(__name__)
 
-# Load environment variables
+# Set API key dari environment variable
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Halaman utama (GUI)
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
+# Endpoint untuk chat AI
 @app.route("/ask", methods=["POST"])
 def ask():
     user_message = request.json.get("message", "")
     if not user_message:
         return jsonify({"error": "Tiada mesej."}), 400
+
     try:
-       client = openai.OpenAI(api_key=OPENAI_API_KEY)
-       response = client.chat.completions.create(
-       model="gpt-3.5-turbo",
-       messages=[{"role": "user", "content": "Hi"}]
-       )
-        answer = response.choices[0].message.content.strip()
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Kau ialah sahabat reflektif bernama TAS.DAR, dimiliki Saif Sudrah."},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        answer = response["choices"][0]["message"]["content"].strip()
         return jsonify({"reply": answer})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
